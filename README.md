@@ -7,7 +7,7 @@ Tetron is a modern, web-based student attendance tracking application. It featur
 ## 👥 Project Team
 
 *   **Developer:** [Prabhat Kumar]
-*   **Mentor:** []
+*   **Mentor:** [Shantanu S. Morgaonkar]
 
 ---
 
@@ -21,7 +21,7 @@ Tetron is a modern, web-based student attendance tracking application. It featur
 ## 📁 Database Architecture & Schema
 
 The application handles relational data inside MongoDB using three primary data models:
-- **User:** Stores admin system credentials (`username`, `password`).
+- **User:** Stores admin system credentials (`username`, `password`) ->(admin),(123)
 - **Student:** Tracks immutable student records including unique Roll Numbers (`rollNo`), names, and their specific `batch`.
 - **Attendance:** A time-series log structured around unique calendar dates (`date`), containing a sub-document array referencing individual Student IDs alongside their tracking state (`Present` or `Absent`).
 
