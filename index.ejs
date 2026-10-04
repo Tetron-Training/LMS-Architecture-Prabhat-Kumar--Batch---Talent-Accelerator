@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tetron - Portal Dashboard</title>
+    <!-- 🆕 Link your fresh, self-contained static external stylesheet file -->
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+    <nav class="navbar">
+        <div class="brand">TETRON Technologies</div>
+        <% if (user) { %>
+            <div>
+                <span style="font-size: 0.875rem; margin-right: 1rem;">Logged in: <b><%= user.username %></b></span>
+                <a href="/logout" class="logout-btn">Sign Out</a>
+            </div>
+        <% } %>
+    </nav>
+
+    <main class="main-container">
+        
+        <% if (error) { %>
+            <div class="alert"><%= error %></div>
+        <% } %>
+
+        <!-- VIEW A: Sign In Layout Forms (If Cookie State is Empty) -->
+        <% if (!user) { %>
+            <div class="card" style="max-width: 400px; margin: 4rem auto;">
+                <h2 style="text-align: center;">Faculty Portal Login</h2>
+                <form action="/login" method="POST">
+                    <div class="form-group">
+                        <label for="username">Username</label>
+                        <input type="text" id="username" name="username" required placeholder="e.g. admin">
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <input type="password" id="password" name="password" required placeholder="••••••••">
+                    </div>
+                    <button type="submit" class="btn" style="width: 100%;">Authenticate Sign In</button>
+                </form>
+            </div>
+
+        <!-- VIEW B: Dashboard Layout Form Panel (If Cookie Verification is Confirmed) -->
+        <% } else { %>
+            
+            <!-- 📊 DYNAMIC LIVE STATISTICS GRID OVERVIEW -->
+            <div class="stats-grid">
+                <div class="stat-box" style="border-top: 4px solid var(--accent);">
+                    <div class="stat-value" style="color: var(--accent);"><%= stats.total %></div>
+                    <div class="stat-label">Total Roster</div>
+                </div>
+                <div class="stat-box" style="border-top: 4px solid #10b981;">
+                    <div class="stat-value" style="color: #10b981;"><%= stats.present %></div>
+                    <div class="stat-label">Present Count</div>
+                </div>
+                <div class="stat-box" style="border-top: 4px solid #ef4444;">
+                    <div class="stat-value" style="color: #ef4444;"><%= stats.absent %></div>
+                    <div class="stat-label">Absent Count</div>
+                </div>
+                <div class="stat-box" style="background-color: #eff6ff; border-top: 4px solid #3b82f6;">
+                    <div class="stat-value" style="color: #1d4ed8;"><%= stats.rate %>%</div>
+                    <div class="stat-label">Presence Rate</div>
+                </div>
+            </div>
+
+            <!-- 👤 STUDENT REGISTRATION FORM MODULE -->
+            <div class="card registration-card">
+                <h3>Register New Student Record</h3>
+                <form action="/students/add" method="POST" class="grid-form">
+                    <div class="form-group" style="margin: 0;">
+                        <label for="rollNo">Roll Number</label>
+                        <input type="text" id="rollNo" name="rollNo" required placeholder="e.g. TTR-05" style="text-transform: uppercase;">
+                    </div>
+                    <div class="form-group" style="margin: 0;">
+                        <label for="name">Student Full Name</label>
+                        <input type="text" id="name" name="name" required placeholder="e.g. Kabir Verma">
+                    </div>
+                    <div class="form-group" style="margin: 0;">
+                        <label for="batch">Class Batch</label>
+                        <input type="text" id="batch" name="batch" value="Batch 2026">
+                    </div>
+                    <button type="submit" class="btn" style="height: 42px;">Save Student</button>
+                </form>
+            </div>
+
+            <!-- 📅 CALENDAR SELECTION COMPONENT -->
+            <div class="card">
+                <h3>Select Attendance Sheet Date</h3>
+                <form action="/tetron" method="GET">
+                    <div class="form-group" style="margin: 0;">
+                        <input type="date" id="date" name="date" value="<%= selectedDate %>" onchange="this.form.submit()">
+                    </div>
+                </form>
+            </div>
+
+            <!-- 📝 CENTRAL MATRIX ROSTER ENGINE WITH NEW STRUCTURAL COLUMNS -->
+            <div class="card">
+                <h3>Attendance Roll-Call Logs</h3>
+                <p style="font-size: 0.875rem; color: var(--text-muted); margin-bottom: 1rem;">Active Sheet Target: <b><%= selectedDate %></b></p>
+                
+                <form action="/attendance/save" method="POST">
+                    <input type="hidden" name="date" value="<%= selectedDate %>">
+                    
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Roll No</th>
+                                <th>Student Identity Name</th>
+                                <th>Status Logs Assignment</th>
+                                <th class="action-cell">Actions</th> <!-- 🆕 Integrated Action Header -->
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% if (records && records.length > 0) { %>
+                                <% records.forEach((record) => { %>
+                                    <tr>
+                                        <td><b><%= record.studentId.rollNo %></b></td>
+                                        <td><%= record.studentId.name %></td>
+                                        <td>
+                                            <div class="radio-group">
+                                                <label class="radio-label">
+                                                    <input type="radio" name="status_<%= record.studentId._id %>" value="Present" <%= record.status === 'Present' ? 'checked' : '' %>> Present
+                                                </label>
+                                                <label class="radio-label">
+                                                    <input type="radio" name="status_<%= record.studentId._id %>" value="Absent" <%= record.status === 'Absent' ? 'checked' : '' %>> Absent
+                                                </label>
+                                            </div>
+                                        </td>
+                                        <!-- 🗑️ INTEGRATED DELETE CELL LINKED TO EXTERNAL CSS CLASSES -->
+                                        <td class="action-cell">
+                                            <a href="/students/delete/<%= record.studentId._id %>?date=<%= selectedDate %>" 
+                                               onclick="return confirm('Are you sure you want to permanently remove this student profile? This will also affect past attendance listings.');" 
+                                               class="delete-action-btn">
+                                               Delete
+                                            </a>
+                                        </td>
+                                    </tr>
+                                <% }) %>
+                            <% } else { %>
+                                <tr>
+                                    <td colspan="4" style="text-align: center; color: var(--text-muted); padding: 2rem;">Roster list empty. Add students using the registration form card above.</td>
+                                </tr>
+                            <% } %>
+                        </tbody>
+                    </table>
+
+                    <% if (records && records.length > 0) { %>
+                        <div style="margin-top: 1.5rem; display: flex; justify-content: flex-end;">
+                            <button type="submit" class="btn">Commit Changes to MongoDB Database</button>
+                        </div>
+                    <% } %>
+                </form>
+            </div>
+
+        <% } %>
+
+    </main>
+
+    <footer>
+        &copy; 2026 Tetron Technologies Hub. All rights reserved.
+    </footer>
+
+</body>
+</html>
